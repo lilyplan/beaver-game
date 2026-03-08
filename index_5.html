@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>릴리버 RUN!</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%A6%AB%3C/text%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --sky1:#dff5ff;
+      --sky2:#9fd4ff;
+      --sky3:#7fc7f2;
+      --hill1:#8fcf9b;
+      --hill2:#5ea874;
+      --forest:#4f8f5e;
+      --forest-dark:#356c47;
+      --ground1:#7c5b3e;
+      --ground2:#5a3d24;
+      --water1:#78d6ff;
+      --water2:#3ca8d8;
+      --ui:#214033;
+      --accent:#d9f2a6;
+      --accent2:#8de0c1;
+      --danger:#d96b5f;
+      --card:rgba(248,255,251,.84);
+      --shadow:0 14px 34px rgba(20,56,42,.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: Inter, Pretendard, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ui);
+      background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,.72) 0 7%, transparent 8%),
+        radial-gradient(circle at 82% 16%, rgba(255,255,255,.45) 0 6%, transparent 7%),
+        linear-gradient(180deg, var(--sky1), var(--sky2) 60%, var(--sky3));
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .game-shell {
+      width: min(980px, 100%);
+      display: grid;
+      gap: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .title-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .title-emoji {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      font-size: 31px;
+      border-radius: 18px;
+      background: rgba(245,255,250,.78);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: clamp(1.55rem, 2vw + 1rem, 2.35rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      color: rgba(74,47,30,.82);
+      font-size: .97rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      min-width: 112px;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(245,255,250,.82);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(120,72,37,.08);
+    }
+
+    .pill .label {
+      display: block;
+      font-size: .75rem;
+      opacity: .72;
+      margin-bottom: 3px;
+    }
+
+    .pill strong {
+      font-size: 1.12rem;
+    }
+
+    .stage {
+      position: relative;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: 0 20px 56px rgba(74,47,30,.24);
+      background: linear-gradient(180deg, #e7f8ff 0%, #a8dfff 58%, #6ec8f0 100%);
+      border: 1px solid rgba(255,255,255,.5);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      touch-action: manipulation;
+      background: transparent;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: linear-gradient(180deg, rgba(60,30,14,.06), rgba(60,30,14,.18));
+      transition: opacity .25s ease;
+    }
+
+    .overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .card {
+      width: min(540px, calc(100% - 14px));
+      background: var(--card);
+      backdrop-filter: blur(10px);
+      border-radius: 26px;
+      padding: 22px 22px 18px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      border: 1px solid rgba(120,72,37,.09);
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: clamp(1.38rem, 1.6vw + 1rem, 2rem);
+    }
+
+    .card p {
+      margin: 0 0 14px;
+      line-height: 1.55;
+      color: rgba(74,47,30,.84);
+    }
+
+    .guide {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      text-align: left;
+      margin: 16px 0 20px;
+    }
+
+    .guide .g {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,252,247,.84);
+      border: 1px solid rgba(120,72,37,.08);
+    }
+
+    .guide b {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+
+    .primary {
+      background: linear-gradient(180deg, #d9f6a4, #7fd5b6);
+      color: #16382b;
+      box-shadow: 0 10px 22px rgba(255,183,96,.36);
+    }
+
+    .secondary {
+      background: rgba(74,47,30,.08);
+      color: var(--ui);
+    }
+
+    .bottom-help {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 0 4px;
+      color: rgba(74,47,30,.88);
+      font-size: .94rem;
+    }
+
+    .touch-hint {
+      display: none;
+      margin-left: auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(245,255,250,.78);
+      box-shadow: var(--shadow);
+    }
+
+    .footer-note {
+      font-size: .88rem;
+      opacity: .78;
+    }
+
+    body.title-mode .stats {
+      display: none;
+    }
+
+    body.title-mode .bottom-help {
+      display: none;
+    }
+
+    @media (max-width: 720px) {
+      .wrap { padding: 14px; }
+      .guide { grid-template-columns: 1fr; }
+      .pill { min-width: 96px; }
+      .touch-hint { display: inline-flex; }
+      .card { padding: 18px 16px 16px; }
+      .bottom-help { font-size: .88rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="game-shell">
+      <div class="topbar">
+        <div class="title-box">
+          <div class="title-emoji">🦫</div>
+          <div class="title">
+            <h1>릴리버 RUN!</h1>
+            <p>귀여운 비버를 점프시켜 통나무를 피하는 미니 액션 게임</p></div>
+        </div>
+
+        <div class="stats">
+          <div class="pill">
+            <span class="label">점수</span>
+            <strong id="scoreText">0</strong>
+          </div>
+          <div class="pill">
+            <span class="label">최고 점수</span>
+            <strong id="bestText">0</strong>
+          </div>
+          <div class="pill">
+            <span class="label">속도</span>
+            <strong id="speedText">1.0x</strong>
+          </div>
+          <div class="pill">
+            <span class="label">개인 랭킹</span>
+            <strong id="rankCountText">TOP 5</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <canvas id="game" width="960" height="540" aria-label="릴리버 로지 런 게임"></canvas>
+
+        <div class="overlay" id="startOverlay">
+          <div class="card">
+            <h2>🦫 릴리버 RUN!</h2>
+            <p>릴리버를 점프시켜 굴러오는 통나무를 피하세요. 오래 버틸수록 속도가 빨라지고 점수가 올라갑니다.</p>
+
+            <div class="guide">
+              <div class="g">
+                <b>조작</b>
+                스페이스바 / ↑ / W / 터치
+              </div>
+              <div class="g">
+                <b>목표</b>
+                통나무에 부딪히지 않고 최대한 오래 생존
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="primary" id="startBtn">게임 시작</button>
+              <button class="secondary" id="howBtn">바로 연습하기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay hidden" id="gameOverOverlay">
+          <div class="card">
+            <h2>💥 Game Over</h2>
+            <p id="resultText">이번 점수 0점</p>
+            <div class="guide">
+              <div class="g">
+                <b>이번 점수</b>
+                <span id="finalScore">0</span>
+              </div>
+              <div class="g">
+                <b>최고 점수</b>
+                <span id="finalBest">0</span>
+              </div>
+            </div>
+            <div class="guide" style="margin-top:0;">
+              <div class="g" style="grid-column:1 / -1;">
+                <b>내 기기 랭킹</b>
+                <div id="rankingList" style="margin-top:8px; display:grid; gap:6px;"></div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="primary" id="restartBtn">다시 시작</button>
+              <button class="secondary" id="titleBtn">처음 화면</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-help">
+        <div>PC에서는 <b>스페이스바</b>, 모바일에서는 <b>화면 터치</b>로 점프</div>
+        <div class="touch-hint">📱 터치 플레이 지원</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    // --- Simple sound system (low volume) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const MASTER_VOLUME = 0.15;
+
+    function playJumpSound(){
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 520;
+      gain.gain.value = MASTER_VOLUME;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      osc.stop(audioCtx.currentTime + 0.16);
+    }
+
+    function playHitSound(){
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "square";
+      osc.frequency.value = 140;
+      gain.gain.value = MASTER_VOLUME * 1.2;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.25);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      osc.stop(audioCtx.currentTime + 0.31);
+    }
+
+
+    const startOverlay = document.getElementById("startOverlay");
+    const gameOverOverlay = document.getElementById("gameOverOverlay");
+    const startBtn = document.getElementById("startBtn");
+    const howBtn = document.getElementById("howBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const titleBtn = document.getElementById("titleBtn");
+
+    const scoreText = document.getElementById("scoreText");
+    const bestText = document.getElementById("bestText");
+    const speedText = document.getElementById("speedText");
+    const rankCountText = document.getElementById("rankCountText");
+    const resultText = document.getElementById("resultText");
+    const finalScore = document.getElementById("finalScore");
+    const finalBest = document.getElementById("finalBest");
+    const rankingList = document.getElementById("rankingList");
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const groundY = 420;
+
+    const state = {
+      phase: "title",
+      score: 0,
+      best: Number(localStorage.getItem("liliver_lodge_run_best") || 0),
+      rankings: JSON.parse(localStorage.getItem("liliver_lodge_run_rankings") || "[]"),
+      baseSpeed: 5.2,
+      speed: 5.2,
+      obstacleTimer: 0,
+      obstacleInterval: 114,
+      distance: 0,
+      cameraShake: 0,
+      flash: 0,
+      clouds: [],
+      particles: [],
+      obstacles: [],
+      trees: [],
+      ripples: [],
+      fireflies: [],
+      tick: 0
+    };
+
+    bestText.textContent = state.best;
+
+    const beaver = {
+      x: 158,
+      y: groundY,
+      w: 100,
+      h: 78,
+      vy: 0,
+      gravity: 0.92,
+      jumpPower: -18.6,
+      grounded: true,
+      squash: 1,
+      blink: 0,
+      trail: 0
+    };
+
+
+
+    function syncPhaseUI() {
+      document.body.classList.toggle("title-mode", state.phase === "title");
+    }
+
+    function saveRankings() {
+      localStorage.setItem("liliver_lodge_run_rankings", JSON.stringify(state.rankings));
+    }
+
+    function updateRankingViews() {
+      const rows = state.rankings.length
+        ? state.rankings.map((score, idx) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,252,247,.9);border:1px solid rgba(120,72,37,.08);">
+              <span><b>#${idx + 1}</b> ${idx === 0 ? "🏆" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "•"}</span>
+              <span style="font-weight:700;">${score}점</span>
+            </div>
+          `).join("")
+        : `<div style="padding:8px 10px;border-radius:12px;background:rgba(255,252,247,.72);border:1px dashed rgba(120,72,37,.16);">아직 기록이 없어요. 첫 플레이로 랭킹을 채워보세요.</div>`;
+
+      rankingList.innerHTML = rows;
+      rankCountText.textContent = `TOP ${Math.max(5, state.rankings.length || 5)}`;
+    }
+
+    function registerScore(score) {
+      if (!Number.isFinite(score) || score <= 0) return;
+      state.rankings.push(score);
+      state.rankings.sort((a, b) => b - a);
+      state.rankings = state.rankings.slice(0, 5);
+      saveRankings();
+      updateRankingViews();
+    }
+
+    function resetGame() {
+      state.phase = "running";
+      state.score = 0;
+      state.baseSpeed = 5.2;
+      state.speed = 5.2;
+      state.obstacleTimer = 0;
+      state.obstacleInterval = 112;
+      state.distance = 0;
+      state.cameraShake = 0;
+      state.flash = 0;
+      state.particles = [];
+      state.obstacles = [];
+      state.ripples = [];
+      state.tick = 0;
+
+      beaver.y = groundY;
+      beaver.vy = 0;
+      beaver.grounded = true;
+      beaver.squash = 1;
+      beaver.blink = 0;
+      beaver.trail = 0;
+
+      for (let i = 0; i < 3; i++) spawnObstacle(true, i * 340 + 780);
+
+      startOverlay.classList.add("hidden");
+      gameOverOverlay.classList.add("hidden");
+      updateUI();
+      syncPhaseUI();
+    }
+
+    function goTitle() {
+      state.phase = "title";
+      startOverlay.classList.remove("hidden");
+      gameOverOverlay.classList.add("hidden");
+      syncPhaseUI();
+    }
+
+    function jump() {
+      if (state.phase === "title") resetGame();
+      if (state.phase !== "running") return;
+      if (!beaver.grounded) return;
+
+      playJumpSound();
+      beaver.vy = beaver.jumpPower;
+      beaver.grounded = false;
+      beaver.squash = 0.84;
+      beaver.trail = 10;
+
+      for (let i = 0; i < 12; i++) {
+        state.particles.push({
+          x: beaver.x + 24 + Math.random() * 34,
+          y: groundY + 2,
+          vx: -1.6 + Math.random() * 3,
+          vy: -1.2 - Math.random() * 2.2,
+          life: 24 + Math.random() * 12,
+          size: 2 + Math.random() * 4,
+          color: Math.random() > 0.45 ? "#f1d2a3" : "#9c6d45"
+        });
+      }
+    }
+
+    function gameOver() {
+      playHitSound();
+      state.phase = "gameover";
+      state.cameraShake = 14;
+      state.flash = 1;
+
+      registerScore(state.score);
+      if (state.score > state.best) {
+        state.best = state.score;
+        localStorage.setItem("liliver_lodge_run_best", String(state.best));
+      }
+      bestText.textContent = state.best;
+      finalScore.textContent = state.score;
+      finalBest.textContent = state.best;
+      resultText.textContent = `이번 점수 ${state.score}점 · ${state.score >= state.best ? "최고 기록 갱신" : "조금만 더 가면 기록 경신"}`;
+      gameOverOverlay.classList.remove("hidden");
+      syncPhaseUI();
+    }
+
+    function spawnCloud() {
+      state.clouds.push({
+        x: W + Math.random() * 120,
+        y: 36 + Math.random() * 120,
+        w: 90 + Math.random() * 90,
+        h: 26 + Math.random() * 20,
+        speed: 0.3 + Math.random() * 0.45
+      });
+    }
+
+    function spawnTrees() {
+      state.trees = [];
+      let x = 0;
+      while (x < W + 200) {
+        state.trees.push({
+          x,
+          w: 44 + Math.random() * 34,
+          h: 90 + Math.random() * 80,
+          layer: Math.random() > 0.45 ? 1 : 2
+        });
+        x += 86 + Math.random() * 72;
+      }
+    }
+
+    function spawnFireflies() {
+      state.fireflies = [];
+      for (let i = 0; i < 14; i++) {
+        state.fireflies.push({
+          x: Math.random() * W,
+          y: 230 + Math.random() * 150,
+          r: 1.8 + Math.random() * 2.6,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.02 + Math.random() * 0.04
+        });
+      }
+    }
+
+    function spawnObstacle(initial = false, customX = null) {
+      const tall = Math.random() > 0.45;
+      const len = (tall ? 126 : 98) + Math.random() * 24;
+      const h = (tall ? 46 : 35) + Math.random() * 8;
+      const y = groundY + 18 - h;
+      state.obstacles.push({
+        x: customX ?? (W + 80),
+        y,
+        w: len,
+        h,
+        rot: -0.02 + Math.random() * 0.04
+      });
+
+      if (!initial) {
+        state.obstacleInterval = Math.max(72, 118 - Math.floor(state.score / 24));
+      }
+    }
+
+    function updateUI() {
+      scoreText.textContent = state.score;
+      bestText.textContent = state.best;
+      speedText.textContent = (state.speed / 5.2).toFixed(1) + "x";
+      rankCountText.textContent = `TOP ${Math.max(5, state.rankings.length || 5)}`;
+    }
+
+    function setupWorld() {
+      state.clouds = [];
+      for (let i = 0; i < 6; i++) {
+        spawnCloud();
+        state.clouds[i].x = Math.random() * W;
+      }
+      spawnTrees();
+      spawnFireflies();
+    }
+
+    function updateRunning() {
+      state.tick += 1;
+      state.distance += state.speed;
+      state.speed = state.baseSpeed + Math.min(4.8, state.score * 0.028);
+
+      beaver.vy += beaver.gravity;
+      beaver.y += beaver.vy;
+
+      if (beaver.y >= groundY) {
+        beaver.y = groundY;
+        beaver.vy = 0;
+        if (!beaver.grounded) {
+          for (let i = 0; i < 9; i++) {
+            state.particles.push({
+              x: beaver.x + 30 + Math.random() * 28,
+              y: groundY + 4,
+              vx: -1.6 + Math.random() * 3.2,
+              vy: -0.7 - Math.random() * 1.8,
+              life: 18 + Math.random() * 12,
+              size: 2 + Math.random() * 3,
+              color: Math.random() > 0.45 ? "#f6d4a9" : "#936845"
+            });
+          }
+        }
+        beaver.grounded = true;
+      }
+
+      beaver.squash += (1 - beaver.squash) * 0.2;
+      beaver.blink -= 1;
+      beaver.trail = Math.max(0, beaver.trail - 1);
+      if (Math.random() < 0.006) beaver.blink = 6;
+
+      state.obstacleTimer += 1;
+      if (state.obstacleTimer >= state.obstacleInterval) {
+        spawnObstacle();
+        state.obstacleTimer = 0;
+      }
+
+      state.clouds.forEach(c => {
+        c.x -= c.speed;
+        if (c.x + c.w < -10) {
+          c.x = W + Math.random() * 120;
+          c.y = 30 + Math.random() * 150;
+        }
+      });
+
+      state.trees.forEach(t => {
+        const mul = t.layer === 1 ? 0.9 : 1.35;
+        t.x -= state.speed * 0.34 * mul;
+      });
+      let lastTree = Math.max(...state.trees.map(t => t.x));
+      state.trees = state.trees.filter(t => t.x + t.w > -60);
+      while (lastTree < W + 120) {
+        const t = {
+          x: lastTree + 86 + Math.random() * 72,
+          w: 44 + Math.random() * 34,
+          h: 90 + Math.random() * 80,
+          layer: Math.random() > 0.45 ? 1 : 2
+        };
+        state.trees.push(t);
+        lastTree = t.x;
+      }
+
+      state.fireflies.forEach(f => {
+        f.x -= 0.3;
+        f.phase += f.speed;
+        if (f.x < -10) {
+          f.x = W + Math.random() * 80;
+          f.y = 230 + Math.random() * 150;
+        }
+      });
+
+      state.obstacles.forEach(o => { o.x -= state.speed; });
+      state.obstacles = state.obstacles.filter(o => o.x + o.w > -120);
+
+      for (const o of state.obstacles) {
+        const bx = beaver.x + 14;
+        const by = beaver.y - beaver.h + 10;
+        const bw = beaver.w - 28;
+        const bh = beaver.h - 14;
+
+        const ox = o.x + 8;
+        const oy = o.y + 4;
+        const ow = o.w - 16;
+        const oh = o.h - 8;
+
+        if (bx < ox + ow && bx + bw > ox && by < oy + oh && by + bh > oy) {
+          gameOver();
+          break;
+        }
+      }
+
+      if (state.phase === "running" && state.tick % 6 === 0) state.score += 1;
+
+      state.particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.08;
+        p.life -= 1;
+      });
+      state.particles = state.particles.filter(p => p.life > 0);
+
+      if (Math.random() < 0.06) {
+        state.ripples.push({
+          x: 120 + Math.random() * (W - 240),
+          y: 454 + Math.random() * 32,
+          r: 8,
+          life: 40
+        });
+      }
+      state.ripples.forEach(r => {
+        r.r += 0.32;
+        r.life -= 1;
+      });
+      state.ripples = state.ripples.filter(r => r.life > 0);
+
+      state.cameraShake *= 0.86;
+      state.flash *= 0.9;
+
+      updateUI();
+    }
+
+    function drawRoundedLog(o) {
+      const {x, y, w, h} = o;
+      ctx.save();
+      ctx.translate(x + w / 2, y + h / 2);
+      ctx.rotate(o.rot);
+
+      const r = h / 2;
+      const grad = ctx.createLinearGradient(0, -h/2, 0, h/2);
+      grad.addColorStop(0, "#b2743c");
+      grad.addColorStop(0.55, "#8b572a");
+      grad.addColorStop(1, "#6a3e1b");
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(-w / 2 + r, -h / 2);
+      ctx.lineTo(w / 2 - r, -h / 2);
+      ctx.quadraticCurveTo(w / 2, -h / 2, w / 2, 0);
+      ctx.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+      ctx.lineTo(-w / 2 + r, h / 2);
+      ctx.quadraticCurveTo(-w / 2, h / 2, -w / 2, 0);
+      ctx.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "rgba(255,232,199,.25)";
+      ctx.fillRect(-w / 2 + 12, -h / 2 + 5, w - 24, 6);
+
+      ctx.strokeStyle = "rgba(255,255,255,.16)";
+      ctx.lineWidth = 2;
+      for (let i = -w / 2 + 24; i < w / 2 - 12; i += 20) {
+        ctx.beginPath();
+        ctx.moveTo(i, -h / 2 + 6);
+        ctx.lineTo(i + 6, h / 2 - 6);
+        ctx.stroke();
+      }
+
+      const ringGrad = ctx.createRadialGradient(-w/2 + 13, 0, 1, -w/2 + 13, 0, h * .36);
+      ringGrad.addColorStop(0, "#f4d2a1");
+      ringGrad.addColorStop(.5, "#c98c56");
+      ringGrad.addColorStop(1, "#8e5a2c");
+      ctx.fillStyle = ringGrad;
+      ctx.beginPath();
+      ctx.arc(-w / 2 + 13, 0, h * 0.34, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(111,64,29,.45)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(-w / 2 + 13, 0, h * 0.22, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawCloud(c) {
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = "rgba(255,249,242,.95)";
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.h * 0.52, 0, Math.PI * 2);
+      ctx.arc(c.x + c.w * 0.18, c.y - 8, c.h * 0.7, 0, Math.PI * 2);
+      ctx.arc(c.x + c.w * 0.4, c.y - 2, c.h * 0.58, 0, Math.PI * 2);
+      ctx.arc(c.x + c.w * 0.62, c.y + 4, c.h * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawTree(t) {
+      const baseY = 338;
+      const trunkW = t.layer === 1 ? 14 : 18;
+      const crownW = t.w;
+      const crownH = t.h;
+      const trunkX = t.x + crownW / 2 - trunkW / 2;
+      const trunkY = baseY - crownH * 0.25;
+
+      const trunkGrad = ctx.createLinearGradient(trunkX, trunkY, trunkX + trunkW, trunkY);
+      trunkGrad.addColorStop(0, "#7b4e2b");
+      trunkGrad.addColorStop(1, "#59341d");
+      ctx.fillStyle = trunkGrad;
+      ctx.fillRect(trunkX, trunkY, trunkW, crownH * 0.56);
+
+      const green = t.layer === 1 ? ["#7ac18e", "#5ea874"] : ["#4a8e61", "#336f4a"];
+      const crownGrad = ctx.createLinearGradient(0, baseY - crownH, 0, baseY);
+      crownGrad.addColorStop(0, green[0]);
+      crownGrad.addColorStop(1, green[1]);
+      ctx.fillStyle = crownGrad;
+
+      ctx.beginPath();
+      ctx.arc(t.x + crownW * 0.5, baseY - crownH * 0.72, crownW * 0.35, 0, Math.PI * 2);
+      ctx.arc(t.x + crownW * 0.3, baseY - crownH * 0.56, crownW * 0.28, 0, Math.PI * 2);
+      ctx.arc(t.x + crownW * 0.7, baseY - crownH * 0.5, crownW * 0.26, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawBeaver() {
+      const x = beaver.x;
+      const y = beaver.y;
+      const w = beaver.w;
+      const h = beaver.h;
+      const top = y - h;
+
+      ctx.save();
+
+      if (beaver.trail > 0) {
+        ctx.globalAlpha = 0.09 + beaver.trail * 0.018;
+        ctx.fillStyle = "#9f6438";
+        ctx.beginPath();
+        ctx.ellipse(x + 36, top + 56, 32 + beaver.trail * 0.8, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.translate(x + w / 2, top + h / 2);
+      ctx.scale(1, beaver.squash);
+      ctx.translate(-(x + w / 2), -(top + h / 2));
+
+      // tail
+      const tailGrad = ctx.createLinearGradient(x - 18, top + 34, x + 18, top + 78);
+      tailGrad.addColorStop(0, "#6f4120");
+      tailGrad.addColorStop(1, "#4c2a15");
+      ctx.save();
+      ctx.translate(x + 14, top + 56);
+      ctx.rotate(-0.34 + Math.sin(state.tick * 0.09) * 0.03);
+      ctx.fillStyle = tailGrad;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(-26, -8, -37, 12);
+      ctx.quadraticCurveTo(-31, 34, -2, 27);
+      ctx.quadraticCurveTo(13, 14, 0, 0);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(255,220,190,.14)";
+      ctx.lineWidth = 2;
+      for (let i = -24; i < -2; i += 7) {
+        ctx.beginPath();
+        ctx.moveTo(i, 4);
+        ctx.lineTo(i + 10, 20);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // body shadow
+      ctx.fillStyle = "rgba(69,37,18,.16)";
+      ctx.beginPath();
+      ctx.ellipse(x + 50, top + 78, 34, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // feet
+      const footGrad = ctx.createLinearGradient(x + 28, top + 66, x + 28, top + 80);
+      footGrad.addColorStop(0, "#735034");
+      footGrad.addColorStop(1, "#4e341f");
+      ctx.fillStyle = footGrad;
+      ctx.beginPath();
+      ctx.roundRect(x + 24, top + 68, 18, 10, 5);
+      ctx.roundRect(x + 66, top + 68, 18, 10, 5);
+      ctx.fill();
+
+      // fluffy body
+      const bodyGrad = ctx.createRadialGradient(x + 58, top + 24, 5, x + 52, top + 48, 52);
+      bodyGrad.addColorStop(0, "#dea16d");
+      bodyGrad.addColorStop(0.36, "#bf7e47");
+      bodyGrad.addColorStop(1, "#834c29");
+      ctx.fillStyle = bodyGrad;
+      ctx.beginPath();
+      ctx.ellipse(x + 54, top + 48, 45, 34, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // fluffy highlights
+      ctx.fillStyle = "rgba(255,224,188,.20)";
+      ctx.beginPath();
+      ctx.ellipse(x + 48, top + 30, 22, 10, -0.15, 0, Math.PI * 2);
+      ctx.fill();
+
+      // belly / muzzle lower
+      const bellyGrad = ctx.createRadialGradient(x + 57, top + 46, 3, x + 57, top + 58, 24);
+      bellyGrad.addColorStop(0, "#f7e1bf");
+      bellyGrad.addColorStop(1, "#d4a57c");
+      ctx.fillStyle = bellyGrad;
+      ctx.beginPath();
+      ctx.ellipse(x + 57, top + 56, 23, 17, 0.03, 0, Math.PI * 2);
+      ctx.fill();
+
+      // head
+      const headGrad = ctx.createRadialGradient(x + 82, top + 16, 3, x + 84, top + 30, 28);
+      headGrad.addColorStop(0, "#ebb07a");
+      headGrad.addColorStop(0.42, "#c2814d");
+      headGrad.addColorStop(1, "#844c2a");
+      ctx.fillStyle = headGrad;
+      ctx.beginPath();
+      ctx.arc(x + 84, top + 31, 27, 0, Math.PI * 2);
+      ctx.fill();
+
+      // ears
+      const earGrad = ctx.createRadialGradient(x + 72, top + 12, 1, x + 72, top + 12, 10);
+      earGrad.addColorStop(0, "#e6b07c");
+      earGrad.addColorStop(1, "#8a5631");
+      ctx.fillStyle = earGrad;
+      ctx.beginPath();
+      ctx.arc(x + 71, top + 12, 8.5, 0, Math.PI * 2);
+      ctx.arc(x + 96, top + 12, 8.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#f5cab0";
+      ctx.beginPath();
+      ctx.arc(x + 71, top + 12, 3.5, 0, Math.PI * 2);
+      ctx.arc(x + 96, top + 12, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // oversized cute eyes
+      ctx.fillStyle = "#fffdf8";
+      ctx.beginPath();
+      ctx.ellipse(x + 76, top + 27, 9.5, 11.5, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + 92, top + 28, 9.5, 11.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (beaver.blink > 0) {
+        ctx.strokeStyle = "#4a2916";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + 69, top + 27);
+        ctx.lineTo(x + 83, top + 27);
+        ctx.moveTo(x + 85, top + 28);
+        ctx.lineTo(x + 99, top + 28);
+        ctx.stroke();
+      } else {
+        ctx.fillStyle = "#1f120c";
+        ctx.beginPath();
+        ctx.arc(x + 78.5, top + 29, 4.2, 0, Math.PI * 2);
+        ctx.arc(x + 89.5, top + 30, 4.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(255,255,255,.96)";
+        ctx.beginPath();
+        ctx.arc(x + 80, top + 27.8, 1.35, 0, Math.PI * 2);
+        ctx.arc(x + 91, top + 28.8, 1.35, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // brows
+      ctx.strokeStyle = "rgba(110,62,34,.38)";
+      ctx.lineWidth = 3;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(x + 69, top + 14);
+      ctx.quadraticCurveTo(x + 76, top + 10, x + 82, top + 16);
+      ctx.moveTo(x + 88, top + 16);
+      ctx.quadraticCurveTo(x + 95, top + 10, x + 102, top + 14);
+      ctx.stroke();
+
+      // cheeks / muzzle
+      const muzzleGrad = ctx.createRadialGradient(x + 96, top + 38, 3, x + 96, top + 42, 20);
+      muzzleGrad.addColorStop(0, "#ffe7cf");
+      muzzleGrad.addColorStop(1, "#ddb08a");
+      ctx.fillStyle = muzzleGrad;
+      ctx.beginPath();
+      ctx.ellipse(x + 84, top + 43, 15, 12, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + 100, top + 43, 15, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // mouth opening
+      ctx.fillStyle = "#6a1f17";
+      ctx.beginPath();
+      ctx.ellipse(x + 92, top + 52, 12, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#d85f68";
+      ctx.beginPath();
+      ctx.ellipse(x + 92, top + 56, 7, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // nose
+      ctx.fillStyle = "#4a2616";
+      ctx.beginPath();
+      ctx.arc(x + 92, top + 37, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // teeth
+      ctx.fillStyle = "#fff9ea";
+      ctx.beginPath();
+      ctx.roundRect(x + 84, top + 43, 6, 12, 2);
+      ctx.roundRect(x + 92, top + 43, 6, 12, 2);
+      ctx.fill();
+
+      // small paws
+      ctx.fillStyle = "#5a371f";
+      ctx.beginPath();
+      ctx.ellipse(x + 36, top + 52, 10, 8, 0.5, 0, Math.PI * 2);
+      ctx.ellipse(x + 68, top + 54, 10, 8, -0.4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // whiskers
+      ctx.strokeStyle = "rgba(74,40,20,.38)";
+      ctx.lineWidth = 1.5;
+      [[72,41,57,38],[72,44,55,44],[72,47,57,50],[112,41,127,38],[112,44,129,44],[112,47,127,50]].forEach(([x1,y1,x2,y2])=>{
+        ctx.beginPath();
+        ctx.moveTo(x + x1 - x, top + y1);
+        ctx.lineTo(x + x2 - x, top + y2);
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
+    function drawBackground() {
+      const shakeX = (Math.random() - 0.5) * state.cameraShake;
+      const shakeY = (Math.random() - 0.5) * state.cameraShake;
+
+      ctx.save();
+      ctx.translate(shakeX, shakeY);
+
+      const sky = ctx.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#dff5ff");
+      sky.addColorStop(0.55, "#9fd4ff");
+      sky.addColorStop(1, "#7fc7f2");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, W, H);
+
+      const sunGlow = ctx.createRadialGradient(820, 92, 8, 820, 92, 72);
+      sunGlow.addColorStop(0, "rgba(255,248,215,.95)");
+      sunGlow.addColorStop(.45, "rgba(255,244,185,.42)");
+      sunGlow.addColorStop(1, "rgba(255,244,185,0)");
+      ctx.fillStyle = sunGlow;
+      ctx.beginPath();
+      ctx.arc(820, 92, 72, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#f7fbda";
+      ctx.beginPath();
+      ctx.arc(820, 92, 36 + Math.sin(state.tick * .02) * .8, 0, Math.PI * 2);
+      ctx.fill();
+
+      state.clouds.forEach(drawCloud);
+
+      ctx.fillStyle = "#9fd2aa";
+      ctx.beginPath();
+      ctx.moveTo(0, 290);
+      ctx.quadraticCurveTo(160, 210, 360, 286);
+      ctx.quadraticCurveTo(530, 220, 710, 282);
+      ctx.quadraticCurveTo(820, 235, 960, 292);
+      ctx.lineTo(960, 540);
+      ctx.lineTo(0, 540);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#63a578";
+      ctx.beginPath();
+      ctx.moveTo(0, 330);
+      ctx.quadraticCurveTo(140, 250, 280, 332);
+      ctx.quadraticCurveTo(430, 262, 570, 326);
+      ctx.quadraticCurveTo(760, 250, 960, 338);
+      ctx.lineTo(960, 540);
+      ctx.lineTo(0, 540);
+      ctx.closePath();
+      ctx.fill();
+
+      state.trees.slice().sort((a,b) => a.layer - b.layer).forEach(drawTree);
+
+      const water = ctx.createLinearGradient(0, 430, 0, 500);
+      water.addColorStop(0, "#83d7ff");
+      water.addColorStop(1, "#3599ce");
+      ctx.fillStyle = water;
+      ctx.fillRect(0, 430, W, 70);
+
+      state.ripples.forEach(r => {
+        ctx.strokeStyle = `rgba(255,247,231,${0.18 * (r.life / 40)})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(r.x, r.y, r.r * 1.8, r.r * 0.6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      state.fireflies.forEach(f => {
+        const a = .18 + ((Math.sin(f.phase) + 1) / 2) * .45;
+        ctx.fillStyle = `rgba(255,244,184,${a})`;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const ground = ctx.createLinearGradient(0, 400, 0, 470);
+      ground.addColorStop(0, "#8a6845");
+      ground.addColorStop(1, "#5d432b");
+      ctx.fillStyle = ground;
+      ctx.fillRect(0, 400, W, 45);
+
+      ctx.fillStyle = "#74b76b";
+      ctx.fillRect(0, 398, W, 5);
+
+      ctx.fillStyle = "#5ca055";
+      for (let i = 0; i < W; i += 18) {
+        const blade = 10 + Math.sin((i + state.tick * 2) * 0.05) * 3;
+        ctx.beginPath();
+        ctx.moveTo(i, 402);
+        ctx.lineTo(i + 4, 402 - blade);
+        ctx.lineTo(i + 8, 402);
+        ctx.fill();
+      }
+
+      state.obstacles.forEach(drawRoundedLog);
+      drawBeaver();
+
+      state.particles.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life / 30);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+
+      ctx.fillStyle = "rgba(24,58,47,.76)";
+      ctx.font = "700 24px Inter, system-ui, sans-serif";
+      ctx.fillText(`점수 ${state.score}`, 22, 34);
+
+      if (state.phase === "title") {
+        ctx.fillStyle = "rgba(255,250,244,.72)";
+        ctx.font = "700 22px Inter, system-ui, sans-serif";
+        ctx.fillText("시작 버튼 또는 스페이스바로 시작", 24, 68);
+      }
+
+      if (state.phase === "running" && state.score > 0 && state.score % 50 === 0 && state.tick % 20 < 10) {
+        ctx.fillStyle = "rgba(255,247,231,.82)";
+        ctx.font = "700 20px Inter, system-ui, sans-serif";
+        ctx.fillText("속도 상승!", W - 130, 38);
+      }
+
+      if (state.flash > 0.01) {
+        ctx.fillStyle = `rgba(255,248,238,${0.28 * state.flash})`;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      ctx.restore();
+    }
+
+    function loop() {
+      requestAnimationFrame(loop);
+      if (state.phase === "running") updateRunning();
+      drawBackground();
+    }
+
+    function primaryAction() {
+      if (state.phase === "gameover") resetGame();
+      else jump();
+    }
+
+    startBtn.addEventListener("click", resetGame);
+    restartBtn.addEventListener("click", resetGame);
+    titleBtn.addEventListener("click", goTitle);
+    howBtn.addEventListener("click", resetGame);
+
+    window.addEventListener("keydown", (e) => {
+      if (["Space", "ArrowUp", "KeyW"].includes(e.code)) {
+        e.preventDefault();
+        primaryAction();
+      }
+      if (e.code === "Enter" && state.phase !== "running") {
+        e.preventDefault();
+        resetGame();
+      }
+      if (e.code === "Escape" && state.phase === "running") {
+        goTitle();
+      }
+    }, { passive: false });
+
+    canvas.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      primaryAction();
+    });
+
+    setupWorld();
+    updateRankingViews();
+    syncPhaseUI();
+    loop();
+    updateUI();
+  </script>
+</body>
+</html>
