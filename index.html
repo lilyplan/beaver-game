@@ -3,26 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>릴리버 로지 런</title>
+  <title>릴리버 RUN!</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ctext y='50' font-size='48'%3E%F0%9F%A6%AB%3C/text%3E%3C/svg%3E" />
   <style>
     :root{
-      --sky1:#fff2df;
-      --sky2:#ffd4a8;
-      --sky3:#ffbb88;
-      --hill1:#d7b37c;
-      --hill2:#b78456;
-      --forest:#8f6a46;
-      --forest-dark:#6b4b30;
-      --ground1:#9f6d43;
-      --ground2:#74482a;
-      --water1:#ffd7a3;
-      --water2:#f4a261;
-      --ui:#4a2f1e;
-      --accent:#ffe08a;
-      --accent2:#ffb86b;
+      --sky1:#dff5ff;
+      --sky2:#9fd4ff;
+      --sky3:#7fc7f2;
+      --hill1:#8fcf9b;
+      --hill2:#5ea874;
+      --forest:#4f8f5e;
+      --forest-dark:#356c47;
+      --ground1:#7c5b3e;
+      --ground2:#5a3d24;
+      --water1:#78d6ff;
+      --water2:#3ca8d8;
+      --ui:#214033;
+      --accent:#d9f2a6;
+      --accent2:#8de0c1;
       --danger:#d96b5f;
-      --card:rgba(255,248,240,.84);
-      --shadow:0 14px 34px rgba(84,45,22,.18);
+      --card:rgba(248,255,251,.84);
+      --shadow:0 14px 34px rgba(20,56,42,.18);
     }
 
     * { box-sizing: border-box; }
@@ -73,7 +74,7 @@
       place-items: center;
       font-size: 31px;
       border-radius: 18px;
-      background: rgba(255,248,240,.78);
+      background: rgba(245,255,250,.78);
       backdrop-filter: blur(8px);
       box-shadow: var(--shadow);
     }
@@ -101,7 +102,7 @@
       min-width: 112px;
       padding: 10px 14px;
       border-radius: 16px;
-      background: rgba(255,248,240,.82);
+      background: rgba(245,255,250,.82);
       backdrop-filter: blur(8px);
       box-shadow: var(--shadow);
       border: 1px solid rgba(120,72,37,.08);
@@ -123,7 +124,7 @@
       border-radius: 30px;
       overflow: hidden;
       box-shadow: 0 20px 56px rgba(74,47,30,.24);
-      background: linear-gradient(180deg, #fff1de 0%, #ffd29e 66%, #ffbe7c 100%);
+      background: linear-gradient(180deg, #e7f8ff 0%, #a8dfff 58%, #6ec8f0 100%);
       border: 1px solid rgba(255,255,255,.5);
     }
 
@@ -213,8 +214,8 @@
     button:active { transform: translateY(1px); }
 
     .primary {
-      background: linear-gradient(180deg, #ffdd93, #ffb760);
-      color: #5a3000;
+      background: linear-gradient(180deg, #d9f6a4, #7fd5b6);
+      color: #16382b;
       box-shadow: 0 10px 22px rgba(255,183,96,.36);
     }
 
@@ -239,7 +240,7 @@
       margin-left: auto;
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(255,248,240,.78);
+      background: rgba(245,255,250,.78);
       box-shadow: var(--shadow);
     }
 
@@ -265,9 +266,8 @@
         <div class="title-box">
           <div class="title-emoji">🦫</div>
           <div class="title">
-            <h1>릴리버 로지 런</h1>
-            <p>귀여운 비버를 점프시켜 통나무를 피하는 따뜻한 감성의 미니 액션 게임</p>
-          </div>
+            <h1>릴리버 RUN!</h1>
+            <p>귀여운 비버를 점프시켜 통나무를 피하는 미니 액션 게임</p></div>
         </div>
 
         <div class="stats">
@@ -295,8 +295,8 @@
 
         <div class="overlay" id="startOverlay">
           <div class="card">
-            <h2>🦫 릴리버 로지 런</h2>
-            <p>릴리버를 점프시켜 굴러오는 통나무를 피하세요. 오래 버틸수록 속도가 빨라지고, 최고 점수는 자동 저장됩니다.</p>
+            <h2>🦫 릴리버 RUN!</h2>
+            <p>릴리버를 점프시켜 굴러오는 통나무를 피하세요. 오래 버틸수록 속도가 빨라지고 점수가 올라갑니다.</p>
 
             <div class="guide">
               <div class="g">
@@ -311,7 +311,7 @@
 
             <div class="guide" style="margin-top:0;">
               <div class="g" style="grid-column:1 / -1;">
-                <b>내 최고 기록 TOP 3</b>
+                <b>내 최고 기록 TOP 5</b>
                 <div id="titleRankingList" style="margin-top:8px; display:grid; gap:6px;"></div>
               </div>
             </div>
@@ -353,7 +353,6 @@
       <div class="bottom-help">
         <div>PC에서는 <b>스페이스바</b>, 모바일에서는 <b>화면 터치</b>로 점프</div>
         <div class="touch-hint">📱 터치 플레이 지원</div>
-        <div class="footer-note">index.html 한 파일만 업로드하면 바로 배포할 수 있습니다.</div>
       </div>
     </div>
   </div>
@@ -361,6 +360,39 @@
   <script>
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
+
+    // --- Simple sound system (low volume) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const MASTER_VOLUME = 0.15;
+
+    function playJumpSound(){
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 520;
+      gain.gain.value = MASTER_VOLUME;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      osc.stop(audioCtx.currentTime + 0.16);
+    }
+
+    function playHitSound(){
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "square";
+      osc.frequency.value = 140;
+      gain.gain.value = MASTER_VOLUME * 1.2;
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.25);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+      osc.stop(audioCtx.currentTime + 0.31);
+    }
+
 
     const startOverlay = document.getElementById("startOverlay");
     const gameOverOverlay = document.getElementById("gameOverOverlay");
@@ -398,6 +430,7 @@
       clouds: [],
       particles: [],
       obstacles: [],
+      coins: [],
       trees: [],
       ripples: [],
       fireflies: [],
@@ -426,7 +459,7 @@
     }
 
     function updateRankingViews() {
-      const fullRows = state.rankings.length
+      const rows = state.rankings.length
         ? state.rankings.map((score, idx) => `
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,252,247,.9);border:1px solid rgba(120,72,37,.08);">
               <span><b>#${idx + 1}</b> ${idx === 0 ? "🏆" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "•"}</span>
@@ -435,19 +468,8 @@
           `).join("")
         : `<div style="padding:8px 10px;border-radius:12px;background:rgba(255,252,247,.72);border:1px dashed rgba(120,72,37,.16);">아직 기록이 없어요. 첫 플레이로 랭킹을 채워보세요.</div>`;
 
-      const titleRows = state.rankings.length
-        ? state.rankings.slice(0, 3).map((score, idx) => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:12px;background:rgba(255,252,247,.9);border:1px solid rgba(120,72,37,.08);">
-              <span><b>#${idx + 1}</b> ${idx === 0 ? "🏆" : idx === 1 ? "🥈" : "🥉"}</span>
-              <span style="font-weight:700;">${score}점</span>
-            </div>
-          `).join("")
-        : `<div style="padding:8px 10px;border-radius:12px;background:rgba(255,252,247,.72);border:1px dashed rgba(120,72,37,.16);">아직 기록이 없어요. 첫 플레이로 랭킹을 채워보세요.</div>`;
-
-      rankingList.innerHTML = fullRows;
-      if (typeof titleRankingList !== "undefined" && titleRankingList) {
-        titleRankingList.innerHTML = titleRows;
-      }
+      rankingList.innerHTML = rows;
+      titleRankingList.innerHTML = rows;
       rankCountText.textContent = `TOP ${Math.max(5, state.rankings.length || 5)}`;
     }
 
@@ -482,7 +504,7 @@
       beaver.blink = 0;
       beaver.trail = 0;
 
-      spawnObstacle(true, 980);
+      for (let i = 0; i < 3; i++) spawnObstacle(true, i * 340 + 780);
 
       startOverlay.classList.add("hidden");
       gameOverOverlay.classList.add("hidden");
@@ -500,6 +522,7 @@
       if (state.phase !== "running") return;
       if (!beaver.grounded) return;
 
+      playJumpSound();
       beaver.vy = beaver.jumpPower;
       beaver.grounded = false;
       beaver.squash = 0.84;
@@ -519,6 +542,7 @@
     }
 
     function gameOver() {
+      playHitSound();
       state.phase = "gameover";
       state.cameraShake = 14;
       state.flash = 1;
@@ -573,20 +597,20 @@
     }
 
     function spawnObstacle(initial = false, customX = null) {
-      if (state.obstacles.length > 0) return;
-
-      const size = 68 + Math.random() * 8;
-      const y = groundY + 10 - size * 0.78;
+      const tall = Math.random() > 0.45;
+      const len = (tall ? 126 : 98) + Math.random() * 24;
+      const h = (tall ? 46 : 35) + Math.random() * 8;
+      const y = groundY + 18 - h;
       state.obstacles.push({
-        x: customX ?? (W + 120),
+        x: customX ?? (W + 80),
         y,
-        w: size,
-        h: size,
-        rot: Math.random() * 0.2
+        w: len,
+        h,
+        rot: -0.02 + Math.random() * 0.04
       });
 
       if (!initial) {
-        state.obstacleInterval = Math.max(96, 150 - Math.floor(state.score / 30));
+        state.obstacleInterval = Math.max(54, 94 - Math.floor(state.score / 18));
       }
     }
 
@@ -639,17 +663,18 @@
       beaver.trail = Math.max(0, beaver.trail - 1);
       if (Math.random() < 0.006) beaver.blink = 6;
 
-      if (state.tick % 160 === 0 && state.coins.length === 0) {
+      state.obstacleTimer += 1;
+      if (state.obstacleTimer >= state.obstacleInterval) {
+        spawnObstacle();
+
+      if (state.tick % 120 === 0) {
         state.coins.push({
-          x: W + 80,
-          y: 255 + Math.random() * 50,
+          x: W + 40,
+          y: 260 + Math.random()*40,
           r: 12
         });
       }
 
-      state.obstacleTimer += 1;
-      if (state.obstacleTimer >= state.obstacleInterval) {
-        spawnObstacle();
         state.obstacleTimer = 0;
       }
 
@@ -741,53 +766,52 @@
       const {x, y, w, h} = o;
       ctx.save();
       ctx.translate(x + w / 2, y + h / 2);
-      ctx.rotate(o.rot + state.tick * 0.05);
+      ctx.rotate(o.rot + state.tick*0.03);
 
-      const size = Math.max(w, h) * 0.78;
-      const bodyW = size;
-      const bodyH = size;
+      const r = h / 2;
+      const grad = ctx.createLinearGradient(0, -h/2, 0, h/2);
+      grad.addColorStop(0, "#b2743c");
+      grad.addColorStop(0.55, "#8b572a");
+      grad.addColorStop(1, "#6a3e1b");
 
-      const bodyGrad = ctx.createLinearGradient(-bodyW/2, -bodyH/2, bodyW/2, bodyH/2);
-      bodyGrad.addColorStop(0, "#4a4f58");
-      bodyGrad.addColorStop(0.55, "#2a2e35");
-      bodyGrad.addColorStop(1, "#16181c");
-      ctx.fillStyle = bodyGrad;
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.roundRect(-bodyW / 2, -bodyH / 2, bodyW, bodyH, 12);
+      ctx.moveTo(-w / 2 + r, -h / 2);
+      ctx.lineTo(w / 2 - r, -h / 2);
+      ctx.quadraticCurveTo(w / 2, -h / 2, w / 2, 0);
+      ctx.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+      ctx.lineTo(-w / 2 + r, h / 2);
+      ctx.quadraticCurveTo(-w / 2, h / 2, -w / 2, 0);
+      ctx.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+      ctx.closePath();
       ctx.fill();
 
-      ctx.fillStyle = "rgba(255,255,255,.10)";
-      ctx.beginPath();
-      ctx.roundRect(-bodyW / 2 + 6, -bodyH / 2 + 6, bodyW - 12, bodyH * 0.22, 8);
-      ctx.fill();
-
-      ctx.fillStyle = "#111317";
-      ctx.beginPath();
-      ctx.arc(0, 0, bodyW * 0.28, 0, Math.PI * 2);
-      ctx.fill();
-
-      const coneGrad = ctx.createRadialGradient(-4, -4, 2, 0, 0, bodyW * 0.28);
-      coneGrad.addColorStop(0, "#7e8794");
-      coneGrad.addColorStop(0.45, "#505762");
-      coneGrad.addColorStop(1, "#23272d");
-      ctx.fillStyle = coneGrad;
-      ctx.beginPath();
-      ctx.arc(0, 0, bodyW * 0.22, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#0d0f13";
-      ctx.beginPath();
-      ctx.arc(0, 0, bodyW * 0.09, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#1a1d22";
-      ctx.beginPath();
-      ctx.arc(-bodyW * 0.22, -bodyH * 0.22, bodyW * 0.08, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = "rgba(255,232,199,.25)";
+      ctx.fillRect(-w / 2 + 12, -h / 2 + 5, w - 24, 6);
 
       ctx.strokeStyle = "rgba(255,255,255,.16)";
       ctx.lineWidth = 2;
-      ctx.strokeRect(-bodyW / 2 + 4, -bodyH / 2 + 4, bodyW - 8, bodyH - 8);
+      for (let i = -w / 2 + 24; i < w / 2 - 12; i += 20) {
+        ctx.beginPath();
+        ctx.moveTo(i, -h / 2 + 6);
+        ctx.lineTo(i + 6, h / 2 - 6);
+        ctx.stroke();
+      }
+
+      const ringGrad = ctx.createRadialGradient(-w/2 + 13, 0, 1, -w/2 + 13, 0, h * .36);
+      ringGrad.addColorStop(0, "#f4d2a1");
+      ringGrad.addColorStop(.5, "#c98c56");
+      ringGrad.addColorStop(1, "#8e5a2c");
+      ctx.fillStyle = ringGrad;
+      ctx.beginPath();
+      ctx.arc(-w / 2 + 13, 0, h * 0.34, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(111,64,29,.45)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(-w / 2 + 13, 0, h * 0.22, 0, Math.PI * 2);
+      ctx.stroke();
 
       ctx.restore();
     }
@@ -805,32 +829,32 @@
       ctx.restore();
     }
 
-    function drawTree(t) {
-      const baseY = 338;
-      const trunkW = t.layer === 1 ? 14 : 18;
-      const crownW = t.w;
-      const crownH = t.h;
-      const trunkX = t.x + crownW / 2 - trunkW / 2;
-      const trunkY = baseY - crownH * 0.25;
+    
+function drawTree(t) {
+  const baseY = 338;
+  const trunkW = 14;
+  const trunkX = t.x + t.w/2 - trunkW/2;
 
-      const trunkGrad = ctx.createLinearGradient(trunkX, trunkY, trunkX + trunkW, trunkY);
-      trunkGrad.addColorStop(0, "#7b4e2b");
-      trunkGrad.addColorStop(1, "#59341d");
-      ctx.fillStyle = trunkGrad;
-      ctx.fillRect(trunkX, trunkY, trunkW, crownH * 0.56);
+  ctx.fillStyle = "#5c3a22";
+  ctx.fillRect(trunkX, baseY - 40, trunkW, 40);
 
-      const green = t.layer === 1 ? ["#c9a16c", "#b47e51"] : ["#8a6844", "#6b4b30"];
-      const crownGrad = ctx.createLinearGradient(0, baseY - crownH, 0, baseY);
-      crownGrad.addColorStop(0, green[0]);
-      crownGrad.addColorStop(1, green[1]);
-      ctx.fillStyle = crownGrad;
+  const levels = [
+    {w:60, y:baseY-70},
+    {w:80, y:baseY-100},
+    {w:100, y:baseY-130}
+  ];
 
-      ctx.beginPath();
-      ctx.arc(t.x + crownW * 0.5, baseY - crownH * 0.72, crownW * 0.35, 0, Math.PI * 2);
-      ctx.arc(t.x + crownW * 0.3, baseY - crownH * 0.56, crownW * 0.28, 0, Math.PI * 2);
-      ctx.arc(t.x + crownW * 0.7, baseY - crownH * 0.5, crownW * 0.26, 0, Math.PI * 2);
-      ctx.fill();
-    }
+  levels.forEach(l=>{
+    ctx.fillStyle = "#4f8f5e";
+    ctx.beginPath();
+    ctx.moveTo(t.x + t.w/2, l.y);
+    ctx.lineTo(t.x + t.w/2 - l.w/2, l.y + 40);
+    ctx.lineTo(t.x + t.w/2 + l.w/2, l.y + 40);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
 
     function drawBeaver() {
       const x = beaver.x;
@@ -854,7 +878,6 @@
       ctx.scale(1, beaver.squash);
       ctx.translate(-(x + w/2), -(top + h/2));
 
-      // tail
       const tailGrad = ctx.createLinearGradient(x - 18, top + 30, x + 16, top + 70);
       tailGrad.addColorStop(0, "#6e3e1d");
       tailGrad.addColorStop(1, "#4b2914");
@@ -879,13 +902,11 @@
       }
       ctx.restore();
 
-      // shadow
       ctx.fillStyle = "rgba(82,43,20,.18)";
       ctx.beginPath();
       ctx.ellipse(x + 42, top + 72, 30, 10, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // body 3D
       const bodyGrad = ctx.createRadialGradient(x + 56, top + 20, 4, x + 45, top + 38, 44);
       bodyGrad.addColorStop(0, "#d29a67");
       bodyGrad.addColorStop(.38, "#b77948");
@@ -895,7 +916,6 @@
       ctx.ellipse(x + 46, top + 43, 39, 28, -0.06, 0, Math.PI * 2);
       ctx.fill();
 
-      // belly
       const bellyGrad = ctx.createRadialGradient(x + 54, top + 36, 2, x + 52, top + 50, 22);
       bellyGrad.addColorStop(0, "#ffe4bf");
       bellyGrad.addColorStop(1, "#d7a476");
@@ -904,7 +924,6 @@
       ctx.ellipse(x + 53, top + 49, 20, 14, 0.04, 0, Math.PI * 2);
       ctx.fill();
 
-      // head
       const headGrad = ctx.createRadialGradient(x + 78, top + 18, 2, x + 75, top + 28, 24);
       headGrad.addColorStop(0, "#d8a06c");
       headGrad.addColorStop(.45, "#bc7e4d");
@@ -914,7 +933,6 @@
       ctx.arc(x + 82, top + 30, 24, 0, Math.PI * 2);
       ctx.fill();
 
-      // ears
       const earGrad = ctx.createRadialGradient(x + 70, top + 12, 1, x + 70, top + 12, 9);
       earGrad.addColorStop(0, "#dca16d");
       earGrad.addColorStop(1, "#87522d");
@@ -930,14 +948,12 @@
       ctx.arc(x + 89, top + 10, 3.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // cheeks
       ctx.fillStyle = "rgba(255,195,173,.45)";
       ctx.beginPath();
       ctx.arc(x + 72, top + 38, 6, 0, Math.PI * 2);
       ctx.arc(x + 92, top + 39, 6, 0, Math.PI * 2);
       ctx.fill();
 
-      // snout
       const snoutGrad = ctx.createRadialGradient(x + 95, top + 32, 2, x + 96, top + 38, 16);
       snoutGrad.addColorStop(0, "#ffe1c4");
       snoutGrad.addColorStop(1, "#dba57d");
@@ -946,7 +962,6 @@
       ctx.ellipse(x + 95, top + 40, 16, 13, 0.06, 0, Math.PI * 2);
       ctx.fill();
 
-      // eyes
       if (beaver.blink > 0) {
         ctx.fillStyle = "#3e2412";
         ctx.fillRect(x + 78, top + 25, 8, 2);
@@ -961,13 +976,11 @@
         ctx.fill();
       }
 
-      // nose
       ctx.fillStyle = "#4b2315";
       ctx.beginPath();
       ctx.arc(x + 103, top + 36, 3.4, 0, Math.PI * 2);
       ctx.fill();
 
-      // mouth
       ctx.strokeStyle = "rgba(92,47,25,.55)";
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -975,12 +988,10 @@
       ctx.quadraticCurveTo(x + 96, top + 45, x + 92, top + 44);
       ctx.stroke();
 
-      // teeth
       ctx.fillStyle = "#fff8e2";
       ctx.fillRect(x + 92, top + 43, 5, 10);
       ctx.fillRect(x + 98, top + 43, 5, 10);
 
-      // arms
       ctx.strokeStyle = "#8d582f";
       ctx.lineWidth = 6;
       ctx.lineCap = "round";
@@ -989,7 +1000,6 @@
       ctx.lineTo(x + 72, top + 55);
       ctx.stroke();
 
-      // feet
       const footGrad = ctx.createLinearGradient(x + 30, top + 60, x + 30, top + 72);
       footGrad.addColorStop(0, "#8d592f");
       footGrad.addColorStop(1, "#6b3f22");
@@ -1010,29 +1020,29 @@
       ctx.translate(shakeX, shakeY);
 
       const sky = ctx.createLinearGradient(0, 0, 0, H);
-      sky.addColorStop(0, "#fff2df");
-      sky.addColorStop(0.55, "#ffd4a8");
-      sky.addColorStop(1, "#ffbb88");
+      sky.addColorStop(0, "#dff5ff");
+      sky.addColorStop(0.55, "#9fd4ff");
+      sky.addColorStop(1, "#7fc7f2");
       ctx.fillStyle = sky;
       ctx.fillRect(0, 0, W, H);
 
       const sunGlow = ctx.createRadialGradient(820, 92, 8, 820, 92, 72);
-      sunGlow.addColorStop(0, "rgba(255,235,185,.95)");
-      sunGlow.addColorStop(.45, "rgba(255,205,132,.55)");
-      sunGlow.addColorStop(1, "rgba(255,205,132,0)");
+      sunGlow.addColorStop(0, "rgba(255,248,215,.95)");
+      sunGlow.addColorStop(.45, "rgba(255,244,185,.42)");
+      sunGlow.addColorStop(1, "rgba(255,244,185,0)");
       ctx.fillStyle = sunGlow;
       ctx.beginPath();
       ctx.arc(820, 92, 72, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "#ffe6ae";
+      ctx.fillStyle = "#f7fbda";
       ctx.beginPath();
       ctx.arc(820, 92, 36 + Math.sin(state.tick * .02) * .8, 0, Math.PI * 2);
       ctx.fill();
 
       state.clouds.forEach(drawCloud);
 
-      ctx.fillStyle = "#e2bc82";
+      ctx.fillStyle = "#9fd2aa";
       ctx.beginPath();
       ctx.moveTo(0, 290);
       ctx.quadraticCurveTo(160, 210, 360, 286);
@@ -1043,7 +1053,7 @@
       ctx.closePath();
       ctx.fill();
 
-      ctx.fillStyle = "#bc895a";
+      ctx.fillStyle = "#63a578";
       ctx.beginPath();
       ctx.moveTo(0, 330);
       ctx.quadraticCurveTo(140, 250, 280, 332);
@@ -1057,8 +1067,8 @@
       state.trees.slice().sort((a,b) => a.layer - b.layer).forEach(drawTree);
 
       const water = ctx.createLinearGradient(0, 430, 0, 500);
-      water.addColorStop(0, "#ffd8a6");
-      water.addColorStop(1, "#f0a15d");
+      water.addColorStop(0, "#83d7ff");
+      water.addColorStop(1, "#3599ce");
       ctx.fillStyle = water;
       ctx.fillRect(0, 430, W, 70);
 
@@ -1079,15 +1089,15 @@
       });
 
       const ground = ctx.createLinearGradient(0, 400, 0, 470);
-      ground.addColorStop(0, "#a36f45");
-      ground.addColorStop(1, "#74482a");
+      ground.addColorStop(0, "#8a6845");
+      ground.addColorStop(1, "#5d432b");
       ctx.fillStyle = ground;
       ctx.fillRect(0, 400, W, 45);
 
-      ctx.fillStyle = "#d79d61";
+      ctx.fillStyle = "#74b76b";
       ctx.fillRect(0, 398, W, 5);
 
-      ctx.fillStyle = "#c88e52";
+      ctx.fillStyle = "#5ca055";
       for (let i = 0; i < W; i += 18) {
         const blade = 10 + Math.sin((i + state.tick * 2) * 0.05) * 3;
         ctx.beginPath();
@@ -1109,7 +1119,7 @@
         ctx.globalAlpha = 1;
       });
 
-      ctx.fillStyle = "rgba(74,47,30,.76)";
+      ctx.fillStyle = "rgba(24,58,47,.76)";
       ctx.font = "700 24px Inter, system-ui, sans-serif";
       ctx.fillText(`점수 ${state.score}`, 22, 34);
 
