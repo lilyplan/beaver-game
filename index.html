@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beaver Dodge</title>
+  <style>
+    :root{
+      --sky1:#dff6ff;
+      --sky2:#9ad9ff;
+      --forest:#6fb86d;
+      --forest-dark:#4b8f4f;
+      --ground1:#8f6b46;
+      --ground2:#68482e;
+      --water1:#72d7ff;
+      --water2:#3fb0e4;
+      --wood:#8b5a2b;
+      --wood-dark:#5e3a1b;
+      --ui:#1e2a35;
+      --accent:#ffdf6c;
+      --danger:#ff6f61;
+      --white:#ffffff;
+      --shadow:0 10px 30px rgba(0,0,0,.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      font-family: Inter, Pretendard, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ui);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.65) 0 8%, transparent 9%),
+        radial-gradient(circle at 80% 12%, rgba(255,255,255,.5) 0 7%, transparent 8%),
+        linear-gradient(180deg, var(--sky1), var(--sky2));
+      overflow-x: hidden;
+    }
+
+    .wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .game-shell {
+      width: min(960px, 100%);
+      display: grid;
+      gap: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .title-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .title-emoji {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.65);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: clamp(1.5rem, 2vw + 1rem, 2.2rem);
+      line-height: 1.1;
+    }
+
+    .title p {
+      margin: 4px 0 0;
+      color: rgba(30,42,53,.82);
+      font-size: .96rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      min-width: 108px;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.7);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+    }
+
+    .pill .label {
+      display: block;
+      font-size: .75rem;
+      opacity: .72;
+      margin-bottom: 3px;
+    }
+
+    .pill strong {
+      font-size: 1.12rem;
+    }
+
+    .stage {
+      position: relative;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,.22);
+      background: linear-gradient(180deg, #dff7ff 0%, #8fd7ff 66%, #76c9fb 100%);
+      border: 1px solid rgba(255,255,255,.45);
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      touch-action: manipulation;
+      background: transparent;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: linear-gradient(180deg, rgba(8,20,35,.08), rgba(8,20,35,.2));
+      transition: opacity .25s ease;
+    }
+
+    .overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .card {
+      width: min(520px, calc(100% - 14px));
+      background: rgba(255,255,255,.83);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 22px 22px 18px;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: clamp(1.35rem, 1.5vw + 1rem, 2rem);
+    }
+
+    .card p {
+      margin: 0 0 14px;
+      line-height: 1.55;
+      color: rgba(30,42,53,.85);
+    }
+
+    .guide {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      text-align: left;
+      margin: 16px 0 20px;
+    }
+
+    .guide .g {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.8);
+      border: 1px solid rgba(30,42,53,.08);
+    }
+
+    .guide b {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px); }
+
+    .primary {
+      background: linear-gradient(180deg, #ffd860, #ffbf2f);
+      color: #3f2a00;
+      box-shadow: 0 10px 22px rgba(255,191,47,.35);
+    }
+
+    .secondary {
+      background: rgba(30,42,53,.08);
+      color: var(--ui);
+    }
+
+    .bottom-help {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 0 4px;
+      color: rgba(30,42,53,.86);
+      font-size: .94rem;
+    }
+
+    .touch-hint {
+      display: none;
+      margin-left: auto;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.68);
+      box-shadow: var(--shadow);
+    }
+
+    .footer-note {
+      font-size: .88rem;
+      opacity: .78;
+    }
+
+    @media (max-width: 720px) {
+      .wrap { padding: 14px; }
+      .guide { grid-template-columns: 1fr; }
+      .pill { min-width: 96px; }
+      .touch-hint { display: inline-flex; }
+      .card { padding: 18px 16px 16px; }
+      .bottom-help { font-size: .88rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="game-shell">
+      <div class="topbar">
+        <div class="title-box">
+          <div class="title-emoji">🦫</div>
+          <div class="title">
+            <h1>Beaver Dodge</h1>
+            <p>통나무를 피해 오래 버티는 미니 액션 게임</p>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div class="pill">
+            <span class="label">점수</span>
+            <strong id="scoreText">0</strong>
+          </div>
+          <div class="pill">
+            <span class="label">최고 점수</span>
+            <strong id="bestText">0</strong>
+          </div>
+          <div class="pill">
+            <span class="label">속도</span>
+            <strong id="speedText">1.0x</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <canvas id="game" width="960" height="540" aria-label="Beaver Dodge game"></canvas>
+
+        <div class="overlay" id="startOverlay">
+          <div class="card">
+            <h2>🦫 Beaver Dodge</h2>
+            <p>비버를 점프시켜 날아오는 통나무를 피하세요. 오래 버틸수록 속도가 빨라지고 점수가 올라갑니다.</p>
+
+            <div class="guide">
+              <div class="g">
+                <b>조작</b>
+                스페이스바 / ↑ / W / 터치
+              </div>
+              <div class="g">
+                <b>목표</b>
+                통나무에 부딪히지 않고 최대한 오래 생존
+              </div>
+            </div>
+
+            <div class="btn-row">
+              <button class="primary" id="startBtn">게임 시작</button>
+              <button class="secondary" id="howBtn">조작 연습</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="overlay hidden" id="gameOverOverlay">
+          <div class="card">
+            <h2>💥 Game Over</h2>
+            <p id="resultText">이번 점수 0점</p>
+            <div class="guide">
+              <div class="g">
+                <b>이번 점수</b>
+                <span id="finalScore">0</span>
+              </div>
+              <div class="g">
+                <b>최고 점수</b>
+                <span id="finalBest">0</span>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="primary" id="restartBtn">다시 시작</button>
+              <button class="secondary" id="titleBtn">처음 화면</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-help">
+        <div>PC에서는 <b>스페이스바</b>, 모바일에서는 <b>화면 터치</b>로 점프</div>
+        <div class="touch-hint">📱 터치로도 플레이 가능</div>
+        <div class="footer-note">한 파일로 만든 정적 웹게임이라 GitHub/Vercel에 바로 올릴 수 있습니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const startOverlay = document.getElementById("startOverlay");
+    const gameOverOverlay = document.getElementById("gameOverOverlay");
+    const startBtn = document.getElementById("startBtn");
+    const howBtn = document.getElementById("howBtn");
+    const restartBtn = document.getElementById("restartBtn");
+    const titleBtn = document.getElementById("titleBtn");
+
+    const scoreText = document.getElementById("scoreText");
+    const bestText = document.getElementById("bestText");
+    const speedText = document.getElementById("speedText");
+    const resultText = document.getElementById("resultText");
+    const finalScore = document.getElementById("finalScore");
+    const finalBest = document.getElementById("finalBest");
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const groundY = 420;
+
+    const state = {
+      phase: "title", // title, running, gameover
+      score: 0,
+      best: Number(localStorage.getItem("beaver_dodge_best") || 0),
+      baseSpeed: 6.4,
+      speed: 6.4,
+      obstacleTimer: 0,
+      obstacleInterval: 92,
+      distance: 0,
+      cameraShake: 0,
+      flash: 0,
+      clouds: [],
+      particles: [],
+      obstacles: [],
+      trees: [],
+      ripples: [],
+      tick: 0,
+      practiced: false
+    };
+
+    bestText.textContent = state.best;
+
+    const beaver = {
+      x: 160,
+      y: groundY,
+      w: 86,
+      h: 66,
+      vy: 0,
+      gravity: 0.9,
+      jumpPower: -17.5,
+      grounded: true,
+      squash: 1,
+      blink: 0,
+      trail: 0
+    };
+
+    function resetGame() {
+      state.phase = "running";
+      state.score = 0;
+      state.baseSpeed = 6.4;
+      state.speed = 6.4;
+      state.obstacleTimer = 0;
+      state.obstacleInterval = 88;
+      state.distance = 0;
+      state.cameraShake = 0;
+      state.flash = 0;
+      state.particles = [];
+      state.obstacles = [];
+      state.ripples = [];
+      state.tick = 0;
+
+      beaver.y = groundY;
+      beaver.vy = 0;
+      beaver.grounded = true;
+      beaver.squash = 1;
+      beaver.blink = 0;
+      beaver.trail = 0;
+
+      for (let i = 0; i < 3; i++) spawnObstacle(true, i * 340 + 780);
+
+      startOverlay.classList.add("hidden");
+      gameOverOverlay.classList.add("hidden");
+      updateUI();
+    }
+
+    function goTitle() {
+      state.phase = "title";
+      startOverlay.classList.remove("hidden");
+      gameOverOverlay.classList.add("hidden");
+    }
+
+    function jump() {
+      if (state.phase === "title") {
+        resetGame();
+      }
+      if (state.phase !== "running") return;
+      if (!beaver.grounded) return;
+
+      beaver.vy = beaver.jumpPower;
+      beaver.grounded = false;
+      beaver.squash = 0.85;
+      beaver.trail = 8;
+
+      for (let i = 0; i < 10; i++) {
+        state.particles.push({
+          x: beaver.x + 20 + Math.random() * 30,
+          y: groundY + 2,
+          vx: -1.4 + Math.random() * 2.8,
+          vy: -1.2 - Math.random() * 2,
+          life: 24 + Math.random() * 10,
+          size: 2 + Math.random() * 4,
+          color: Math.random() > 0.35 ? "#d8c39d" : "#8b6b46"
+        });
+      }
+    }
+
+    function gameOver() {
+      state.phase = "gameover";
+      state.cameraShake = 14;
+      state.flash = 1;
+
+      if (state.score > state.best) {
+        state.best = state.score;
+        localStorage.setItem("beaver_dodge_best", String(state.best));
+      }
+      bestText.textContent = state.best;
+      finalScore.textContent = state.score;
+      finalBest.textContent = state.best;
+      resultText.textContent = `이번 점수 ${state.score}점 · ${state.score >= state.best ? "최고 기록 달성" : "다시 도전해보세요"}`;
+      gameOverOverlay.classList.remove("hidden");
+    }
+
+    function spawnCloud() {
+      state.clouds.push({
+        x: W + Math.random() * 120,
+        y: 40 + Math.random() * 130,
+        w: 90 + Math.random() * 90,
+        h: 26 + Math.random() * 20,
+        speed: 0.35 + Math.random() * 0.5
+      });
+    }
+
+    function spawnTrees() {
+      state.trees = [];
+      let x = 0;
+      while (x < W + 200) {
+        state.trees.push({
+          x,
+          w: 40 + Math.random() * 34,
+          h: 80 + Math.random() * 80,
+          layer: Math.random() > 0.45 ? 1 : 2
+        });
+        x += 80 + Math.random() * 70;
+      }
+    }
+
+    function spawnObstacle(initial = false, customX = null) {
+      const tall = Math.random() > 0.45;
+      const len = (tall ? 120 : 95) + Math.random() * 25;
+      const h = (tall ? 44 : 34) + Math.random() * 8;
+      const y = groundY + 18 - h;
+      state.obstacles.push({
+        x: customX ?? (W + 80),
+        y,
+        w: len,
+        h,
+        rot: -0.02 + Math.random() * 0.04,
+        dangerPad: 8,
+        notch: 2 + Math.floor(Math.random() * 3)
+      });
+
+      if (!initial) {
+        state.obstacleInterval = Math.max(54, 94 - Math.floor(state.score / 18));
+      }
+    }
+
+    function updateUI() {
+      scoreText.textContent = state.score;
+      bestText.textContent = state.best;
+      speedText.textContent = (state.speed / 6.4).toFixed(1) + "x";
+    }
+
+    function setupWorld() {
+      state.clouds = [];
+      for (let i = 0; i < 6; i++) {
+        spawnCloud();
+        state.clouds[i].x = Math.random() * W;
+      }
+      spawnTrees();
+    }
+
+    function updateRunning() {
+      state.tick += 1;
+      state.distance += state.speed;
+      state.speed = state.baseSpeed + Math.min(6.4, state.score * 0.045);
+
+      beaver.vy += beaver.gravity;
+      beaver.y += beaver.vy;
+
+      if (beaver.y >= groundY) {
+        beaver.y = groundY;
+        beaver.vy = 0;
+        if (!beaver.grounded) {
+          for (let i = 0; i < 8; i++) {
+            state.particles.push({
+              x: beaver.x + 24 + Math.random() * 26,
+              y: groundY + 4,
+              vx: -1.5 + Math.random() * 3,
+              vy: -0.7 - Math.random() * 1.6,
+              life: 18 + Math.random() * 12,
+              size: 1.8 + Math.random() * 3.2,
+              color: Math.random() > 0.45 ? "#d8c39d" : "#8b6b46"
+            });
+          }
+        }
+        beaver.grounded = true;
+      }
+
+      beaver.squash += (1 - beaver.squash) * 0.22;
+      beaver.blink -= 1;
+      beaver.trail = Math.max(0, beaver.trail - 1);
+
+      if (Math.random() < 0.006) beaver.blink = 6;
+
+      state.obstacleTimer += 1;
+      if (state.obstacleTimer >= state.obstacleInterval) {
+        spawnObstacle();
+        state.obstacleTimer = 0;
+      }
+
+      state.clouds.forEach(c => {
+        c.x -= c.speed;
+        if (c.x + c.w < -10) {
+          c.x = W + Math.random() * 120;
+          c.y = 30 + Math.random() * 160;
+        }
+      });
+
+      state.trees.forEach(t => {
+        const mul = t.layer === 1 ? 0.9 : 1.35;
+        t.x -= state.speed * 0.35 * mul;
+      });
+      let lastTree = Math.max(...state.trees.map(t => t.x));
+      state.trees = state.trees.filter(t => t.x + t.w > -60);
+      while (lastTree < W + 120) {
+        const t = {
+          x: lastTree + 80 + Math.random() * 70,
+          w: 40 + Math.random() * 34,
+          h: 80 + Math.random() * 80,
+          layer: Math.random() > 0.45 ? 1 : 2
+        };
+        state.trees.push(t);
+        lastTree = t.x;
+      }
+
+      state.obstacles.forEach(o => {
+        o.x -= state.speed;
+      });
+      state.obstacles = state.obstacles.filter(o => o.x + o.w > -120);
+
+      for (const o of state.obstacles) {
+        const bx = beaver.x + 10;
+        const by = beaver.y - beaver.h + 8;
+        const bw = beaver.w - 20;
+        const bh = beaver.h - 10;
+
+        const ox = o.x + 8;
+        const oy = o.y + 4;
+        const ow = o.w - 16;
+        const oh = o.h - 8;
+
+        if (bx < ox + ow && bx + bw > ox && by < oy + oh && by + bh > oy) {
+          gameOver();
+          break;
+        }
+      }
+
+      if (state.phase === "running" && state.tick % 6 === 0) {
+        state.score += 1;
+      }
+
+      state.particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.08;
+        p.life -= 1;
+      });
+      state.particles = state.particles.filter(p => p.life > 0);
+
+      if (Math.random() < 0.05) {
+        state.ripples.push({
+          x: 100 + Math.random() * (W - 200),
+          y: 455 + Math.random() * 36,
+          r: 8,
+          life: 40
+        });
+      }
+      state.ripples.forEach(r => {
+        r.r += 0.32;
+        r.life -= 1;
+      });
+      state.ripples = state.ripples.filter(r => r.life > 0);
+
+      state.cameraShake *= 0.86;
+      state.flash *= 0.9;
+
+      updateUI();
+    }
+
+    function drawRoundedLog(x, y, w, h) {
+      ctx.save();
+      ctx.translate(x + w / 2, y + h / 2);
+      const obstacle = state.obstacles.find(o => Math.abs((o.x + o.w / 2) - x - w / 2) < 1 && Math.abs((o.y + o.h / 2) - y - h / 2) < 1);
+      ctx.rotate(obstacle ? obstacle.rot : 0);
+
+      const r = h / 2;
+      ctx.fillStyle = "#8b5a2b";
+      ctx.beginPath();
+      ctx.moveTo(-w / 2 + r, -h / 2);
+      ctx.lineTo(w / 2 - r, -h / 2);
+      ctx.quadraticCurveTo(w / 2, -h / 2, w / 2, 0);
+      ctx.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2);
+      ctx.lineTo(-w / 2 + r, h / 2);
+      ctx.quadraticCurveTo(-w / 2, h / 2, -w / 2, 0);
+      ctx.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#5e3a1b";
+      ctx.fillRect(-w / 2 + 10, -h / 2 + 4, w - 20, 5);
+      ctx.fillRect(-w / 2 + 16, h / 2 - 10, w - 32, 5);
+
+      ctx.strokeStyle = "rgba(255,255,255,.18)";
+      ctx.lineWidth = 2;
+      for (let i = -w / 2 + 20; i < w / 2 - 10; i += 20) {
+        ctx.beginPath();
+        ctx.moveTo(i, -h / 2 + 6);
+        ctx.lineTo(i + 6, h / 2 - 6);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#c99864";
+      ctx.beginPath();
+      ctx.arc(-w / 2 + 12, 0, h * 0.33, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#9f6d3d";
+      ctx.beginPath();
+      ctx.arc(-w / 2 + 12, 0, h * 0.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawCloud(c) {
+      ctx.save();
+      ctx.globalAlpha = 0.92;
+      ctx.fillStyle = "rgba(255,255,255,.9)";
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.h * 0.52, 0, Math.PI * 2);
+      ctx.arc(c.x + c.w * 0.18, c.y - 8, c.h * 0.7, 0, Math.PI * 2);
+      ctx.arc(c.x + c.w * 0.4, c.y - 2, c.h * 0.58, 0, Math.PI * 2);
+      ctx.arc(c.x + c.w * 0.62, c.y + 4, c.h * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawTree(t) {
+      const baseY = 340;
+      const trunkW = t.layer === 1 ? 14 : 18;
+      const crownW = t.w;
+      const crownH = t.h;
+      const trunkX = t.x + crownW / 2 - trunkW / 2;
+      const trunkY = baseY - crownH * 0.25;
+
+      ctx.fillStyle = t.layer === 1 ? "#6d4728" : "#5a361b";
+      ctx.fillRect(trunkX, trunkY, trunkW, crownH * 0.55);
+
+      ctx.fillStyle = t.layer === 1 ? "#75ba6f" : "#4b924d";
+      ctx.beginPath();
+      ctx.arc(t.x + crownW * 0.5, baseY - crownH * 0.72, crownW * 0.35, 0, Math.PI * 2);
+      ctx.arc(t.x + crownW * 0.3, baseY - crownH * 0.56, crownW * 0.28, 0, Math.PI * 2);
+      ctx.arc(t.x + crownW * 0.7, baseY - crownH * 0.5, crownW * 0.26, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawBeaver() {
+      const x = beaver.x;
+      const y = beaver.y;
+      const w = beaver.w;
+      const h = beaver.h;
+      const bodyY = y - h;
+
+      ctx.save();
+
+      if (beaver.trail > 0) {
+        ctx.globalAlpha = 0.12 + beaver.trail * 0.02;
+        ctx.fillStyle = "#8b5a2b";
+        ctx.beginPath();
+        ctx.ellipse(x + 24, bodyY + 40, 24 + beaver.trail * 0.8, 16, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.translate(x + w/2, bodyY + h/2);
+      ctx.scale(1, beaver.squash);
+      ctx.translate(-(x + w/2), -(bodyY + h/2));
+
+      // tail
+      ctx.save();
+      ctx.translate(x + 8, bodyY + 42);
+      ctx.rotate(-0.35 + Math.sin(state.tick * 0.09) * 0.04);
+      ctx.fillStyle = "#5b3418";
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(-22, -6, -28, 10);
+      ctx.quadraticCurveTo(-22, 26, -2, 18);
+      ctx.quadraticCurveTo(8, 10, 0, 0);
+      ctx.fill();
+      ctx.restore();
+
+      // body
+      ctx.fillStyle = "#8b5a2b";
+      ctx.beginPath();
+      ctx.ellipse(x + 40, bodyY + 38, 34, 24, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // belly
+      ctx.fillStyle = "#c89c6d";
+      ctx.beginPath();
+      ctx.ellipse(x + 44, bodyY + 42, 18, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // head
+      ctx.fillStyle = "#8b5a2b";
+      ctx.beginPath();
+      ctx.arc(x + 68, bodyY + 28, 20, 0, Math.PI * 2);
+      ctx.fill();
+
+      // ears
+      ctx.fillStyle = "#714320";
+      ctx.beginPath();
+      ctx.arc(x + 58, bodyY + 12, 7, 0, Math.PI * 2);
+      ctx.arc(x + 75, bodyY + 11, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#d7a37b";
+      ctx.beginPath();
+      ctx.arc(x + 58, bodyY + 12, 3, 0, Math.PI * 2);
+      ctx.arc(x + 75, bodyY + 11, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // snout
+      ctx.fillStyle = "#d9aa7f";
+      ctx.beginPath();
+      ctx.ellipse(x + 80, bodyY + 34, 12, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // eye
+      ctx.fillStyle = "#111";
+      if (beaver.blink > 0) {
+        ctx.fillRect(x + 73, bodyY + 24, 7, 2);
+      } else {
+        ctx.beginPath();
+        ctx.arc(x + 75, bodyY + 24, 3.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // nose
+      ctx.fillStyle = "#2f1c11";
+      ctx.beginPath();
+      ctx.arc(x + 88, bodyY + 31, 2.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // teeth
+      ctx.fillStyle = "#fff6d6";
+      ctx.fillRect(x + 82, bodyY + 37, 4, 8);
+      ctx.fillRect(x + 87, bodyY + 37, 4, 8);
+
+      // feet
+      ctx.fillStyle = "#6d4323";
+      ctx.fillRect(x + 28, bodyY + 56, 12, 7);
+      ctx.fillRect(x + 52, bodyY + 56, 12, 7);
+
+      ctx.restore();
+    }
+
+    function drawBackground() {
+      const shakeX = (Math.random() - 0.5) * state.cameraShake;
+      const shakeY = (Math.random() - 0.5) * state.cameraShake;
+
+      ctx.save();
+      ctx.translate(shakeX, shakeY);
+
+      // sky gradient
+      const sky = ctx.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, "#dff7ff");
+      sky.addColorStop(0.55, "#8fd7ff");
+      sky.addColorStop(1, "#74c8fb");
+      ctx.fillStyle = sky;
+      ctx.fillRect(0, 0, W, H);
+
+      // sun
+      const sunPulse = 1 + Math.sin(state.tick * 0.02) * 0.02;
+      ctx.fillStyle = "rgba(255,231,154,.9)";
+      ctx.beginPath();
+      ctx.arc(820, 90, 42 * sunPulse, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(255,255,255,.2)";
+      ctx.beginPath();
+      ctx.arc(810, 82, 16 * sunPulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      state.clouds.forEach(drawCloud);
+
+      // distant hills
+      ctx.fillStyle = "#8bcd87";
+      ctx.beginPath();
+      ctx.moveTo(0, 290);
+      ctx.quadraticCurveTo(160, 210, 360, 286);
+      ctx.quadraticCurveTo(530, 220, 710, 282);
+      ctx.quadraticCurveTo(820, 235, 960, 292);
+      ctx.lineTo(960, 540);
+      ctx.lineTo(0, 540);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#6fb86d";
+      ctx.beginPath();
+      ctx.moveTo(0, 330);
+      ctx.quadraticCurveTo(140, 250, 280, 332);
+      ctx.quadraticCurveTo(430, 262, 570, 326);
+      ctx.quadraticCurveTo(760, 250, 960, 338);
+      ctx.lineTo(960, 540);
+      ctx.lineTo(0, 540);
+      ctx.closePath();
+      ctx.fill();
+
+      state.trees
+        .slice()
+        .sort((a,b) => a.layer - b.layer)
+        .forEach(drawTree);
+
+      // water strip
+      const water = ctx.createLinearGradient(0, 430, 0, 500);
+      water.addColorStop(0, "#77ddff");
+      water.addColorStop(1, "#3ab0e5");
+      ctx.fillStyle = water;
+      ctx.fillRect(0, 430, W, 70);
+
+      // ripples
+      state.ripples.forEach(r => {
+        ctx.strokeStyle = `rgba(255,255,255,${0.18 * (r.life / 40)})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.ellipse(r.x, r.y, r.r * 1.8, r.r * 0.6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // ground
+      const ground = ctx.createLinearGradient(0, 400, 0, 470);
+      ground.addColorStop(0, "#906b46");
+      ground.addColorStop(1, "#68482e");
+      ctx.fillStyle = ground;
+      ctx.fillRect(0, 400, W, 45);
+
+      // grass
+      ctx.fillStyle = "#7dbd5d";
+      for (let i = 0; i < W; i += 18) {
+        const blade = 10 + Math.sin((i + state.tick * 2) * 0.05) * 3;
+        ctx.beginPath();
+        ctx.moveTo(i, 402);
+        ctx.lineTo(i + 4, 402 - blade);
+        ctx.lineTo(i + 8, 402);
+        ctx.fill();
+      }
+
+      // lane highlight
+      ctx.fillStyle = "rgba(255,255,255,.12)";
+      ctx.fillRect(0, 398, W, 4);
+
+      state.obstacles.forEach(o => drawRoundedLog(o.x, o.y, o.w, o.h));
+
+      drawBeaver();
+
+      state.particles.forEach(p => {
+        ctx.globalAlpha = Math.max(0, p.life / 30);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+
+      // score float in stage
+      ctx.fillStyle = "rgba(20,31,42,.78)";
+      ctx.font = "700 24px Inter, system-ui, sans-serif";
+      ctx.fillText(`점수 ${state.score}`, 22, 34);
+
+      if (state.phase === "title") {
+        ctx.fillStyle = "rgba(255,255,255,.4)";
+        ctx.font = "700 22px Inter, system-ui, sans-serif";
+        ctx.fillText("시작 버튼 또는 스페이스바로 시작", 24, 68);
+      }
+
+      if (state.phase === "running" && state.score > 0 && state.score % 50 === 0 && state.tick % 20 < 10) {
+        ctx.fillStyle = "rgba(255,255,255,.75)";
+        ctx.font = "700 20px Inter, system-ui, sans-serif";
+        ctx.fillText("속도 상승!", W - 130, 38);
+      }
+
+      if (state.flash > 0.01) {
+        ctx.fillStyle = `rgba(255,255,255,${0.28 * state.flash})`;
+        ctx.fillRect(0, 0, W, H);
+      }
+
+      ctx.restore();
+    }
+
+    function loop() {
+      requestAnimationFrame(loop);
+      if (state.phase === "running") updateRunning();
+      drawBackground();
+    }
+
+    function primaryAction() {
+      if (state.phase === "gameover") {
+        resetGame();
+      } else {
+        jump();
+      }
+    }
+
+    startBtn.addEventListener("click", resetGame);
+    restartBtn.addEventListener("click", resetGame);
+    titleBtn.addEventListener("click", goTitle);
+
+    howBtn.addEventListener("click", () => {
+      if (state.phase === "title") {
+        resetGame();
+        state.practiced = true;
+      }
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (["Space", "ArrowUp", "KeyW"].includes(e.code)) {
+        e.preventDefault();
+        primaryAction();
+      }
+      if (e.code === "Enter" && state.phase !== "running") {
+        e.preventDefault();
+        resetGame();
+      }
+      if (e.code === "Escape" && state.phase === "running") {
+        goTitle();
+      }
+    }, { passive: false });
+
+    canvas.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      primaryAction();
+    });
+
+    document.body.addEventListener("touchstart", () => {}, { passive: true });
+
+    setupWorld();
+    loop();
+    updateUI();
+  </script>
+</body>
+</html>
